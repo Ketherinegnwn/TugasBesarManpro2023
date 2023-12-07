@@ -1,0 +1,12 @@
+.wrapper-upload{
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    flex:1;
+}
+
+.main{
+    height:100vh;
+    display:flex;
+    flex-direction: column;
+}

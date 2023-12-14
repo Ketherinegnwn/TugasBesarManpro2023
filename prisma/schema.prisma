@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model marketing_campaign {
+  ID                  Int     @id
+  Year_Birth          Int?
+  Education           String? @db.VarChar(10)
+  Marital_Status      String? @db.VarChar(8)
+  Income              String? @db.VarChar(6)
+  Kidhome             Int?
+  Teenhome            Int?
+  Dt_Customer         String? @db.VarChar(10)
+  Recency             Int?
+  MntWines            Int?
+  MntFruits           Int?
+  MntMeatProducts     Int?
+  MntFishProducts     Int?
+  MntSweetProducts    Int?
+  MntGoldProds        Int?
+  NumDealsPurchases   Int?
+  NumWebPurchases     Int?
+  NumCatalogPurchases Int?
+  NumStorePurchases   Int?
+  NumWebVisitsMonth   Int?
+  AcceptedCmp3        Int?
+  AcceptedCmp4        Int?
+  AcceptedCmp5        Int?
+  AcceptedCmp1        Int?
+  AcceptedCmp2        Int?
+  Complain            Int?
+  Z_CostContact       Int?
+  Z_Revenue           Int?
+  Response            Int?
+}

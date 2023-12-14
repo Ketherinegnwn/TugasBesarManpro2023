@@ -1,0 +1,16 @@
+.wrapperUpload {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+}
+
+.main {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.upload > div {
+  padding: 12px;
+}

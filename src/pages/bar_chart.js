@@ -1,132 +1,21 @@
 import Navbar from "@/component/Navbar";
-import axios from "axios";
-import React, { useEffect, useState, useRef } from "react";
-import {
-  message,
-  Button,
-  Form,
-  Input,
-  Select,
-  Table,
-  Space,
-} from "antd";
-import { SearchOutlined } from "@ant-design/icons";
+import React, { useState } from "react";
+import { Button, Form, Select } from "antd";
 import styles from "@/styles/Data.module.css";
+import dynamic from "next/dynamic";
+
+const Column = dynamic(
+  () => import("@ant-design/plots").then((mod) => mod.Column),
+  { ssr: false }
+);
 
 const notInt = ["Education", "Marital_Status", "Dt_Customer"];
-
-const fetchData = async () => {
-  let { data } = await axios.get(`http://localhost:3000/api/data`);
-  data = data.map((c) => ({
-    ...c,
-    key: c["ID"],
-  }));
-
-  return data;
-};
-
-const fetchAgg = async ({ group, sum, agg }) => {
-  let { data } = await axios.get(
-    `http://localhost:3000/api/data?group=${group}&sum=${sum}&agg=${agg}`
-  );
-
-  data = data.map((c) => ({
-    ...c,
-    key: c[group],
-  }));
-
-  return data;
-};
 
 const Data = () => {
   const [data, setData] = useState([]);
   const [isInt, setIsInt] = useState(true);
-  const [aggColumns, setColumns] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const searchInput = useRef(null);
-
-  const getData = async () => {
-    setLoading(true);
-    const data = await fetchData();
-    // console.log(data);
-    setData(data);
-    setColumns(null);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    (async () => {
-      await getData();
-    })();
-  }, []);
 
   const getColumnSearchProps = (dataIndex) => ({
-    filterDropdown: ({
-      setSelectedKeys,
-      selectedKeys,
-      confirm,
-      clearFilters,
-      close,
-    }) => (
-      <div
-        style={{
-          padding: 8,
-        }}
-        onKeyDown={(e) => e.stopPropagation()}>
-        <Input
-          placeholder={`Search ${dataIndex}`}
-          value={selectedKeys[0]}
-          onChange={(e) =>
-            setSelectedKeys(e.target.value ? [e.target.value] : [])
-          }
-          onPressEnter={() => confirm()}
-          style={{
-            marginBottom: 8,
-            display: "block",
-          }}
-        />
-        <Space>
-          <Button
-            type="primary"
-            onClick={() => confirm()}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{
-              width: 90,
-            }}>
-            Search
-          </Button>
-          <Button
-            onClick={() => clearFilters && clearFilters()}
-            size="small"
-            style={{
-              width: 90,
-            }}>
-            Reset
-          </Button>
-        </Space>
-      </div>
-    ),
-    filterIcon: (filtered) => (
-      <SearchOutlined
-        style={{
-          color: filtered ? "#1677ff" : undefined,
-        }}
-      />
-    ),
-    onFilter: (value, record) =>
-      record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: (visible) => {
-      if (visible) {
-        setTimeout(() => searchInput.current?.select(), 100);
-      }
-    },
-    sorter: (a, b) => {
-      if (notInt.includes(dataIndex))
-        return a[dataIndex].localeCompare(b[dataIndex]);
-      return a[dataIndex] - b[dataIndex];
-    },
     width: 200,
     dataIndex,
     key: dataIndex,
@@ -258,32 +147,13 @@ const Data = () => {
   };
 
   const onFinish = async (values) => {
-    // console.log("Success:", values);
-    setLoading(true);
-    if (notInt.includes(values.sum) && values.agg !== "COUNT") {
-      setLoading(false);
-      return message.error(
-        `Can't use ${values.agg} aggregate on ${values.sum}!`
-      );
-    }
+    console.log("Success:", values);
+  };
 
-    const data = await fetchAgg(values);
-    console.log(data);
-
-    const newColumns = [
-      {
-        title: values.group,
-        ...getColumnSearchProps(values.group),
-      },
-      {
-        title: `${values.agg}(${values.sum})`,
-        ...getColumnSearchProps(values.sum),
-      },
-    ];
-
-    setColumns(newColumns);
-    setData(data);
-    setLoading(false);
+  const config = {
+    data,
+    xField: "group",
+    yField: "value",
   };
 
   return (
@@ -341,27 +211,18 @@ const Data = () => {
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading}>
+            <Button type="primary" htmlType="submit">
               Submit
-            </Button>
-          </Form.Item>
-          <Form.Item>
-            <Button onClick={getData} loading={loading}>
-              Refresh
             </Button>
           </Form.Item>
         </Form>
       </div>
-      <Table
-        columns={aggColumns ?? columns}
-        dataSource={data}
-        scroll={{ x: aggColumns ? null : 5000, y: "60vh" }}
-        loading={loading}
-        style={{ margin: "0 40px" }}
-        pagination={{
-          position: ["topCenter", "none"],
-        }}
-      />
+      <div
+        style={{
+          margin: "0 40px",
+        }}>
+        <Column {...config} />
+      </div>
     </>
   );
 };

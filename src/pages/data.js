@@ -1,15 +1,7 @@
 import Navbar from "@/component/Navbar";
 import axios from "axios";
 import React, { useEffect, useState, useRef } from "react";
-import {
-  message,
-  Button,
-  Form,
-  Input,
-  Select,
-  Table,
-  Space,
-} from "antd";
+import { message, Button, Form, Input, Select, Table, Space } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import styles from "@/styles/Data.module.css";
 

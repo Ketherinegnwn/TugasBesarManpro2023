@@ -5,16 +5,16 @@ import { message, Button, Form, Select } from "antd";
 import styles from "@/styles/Data.module.css";
 import dynamic from "next/dynamic";
 
-const Column = dynamic(
-  () => import("@ant-design/plots").then((mod) => mod.Column),
+const Scatter = dynamic(
+  () => import("@ant-design/plots").then((mod) => mod.Scatter),
   { ssr: false }
 );
 
 const notInt = ["Education", "Marital_Status", "Dt_Customer"];
 
-const fetchAgg = async ({ group, sum, agg }) => {
+const fetchAgg = async ({ group, sum }) => {
   let { data } = await axios.get(
-    `http://localhost:3000/api/data?group=${group}&sum=${sum}&agg=${agg}`
+    `http://localhost:3000/api/data?group=${group}&sum=${sum}`
   );
 
   return data;
@@ -22,8 +22,7 @@ const fetchAgg = async ({ group, sum, agg }) => {
 
 const Data = () => {
   const [data, setData] = useState([]);
-  const [isInt, setIsInt] = useState(true);
-  const [aggColumns, setColumns] = useState([]);
+  const [aggColumns, setColumns] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const getColumnSearchProps = (dataIndex) => ({
@@ -176,9 +175,7 @@ const Data = () => {
         dataIndex: values.group,
       },
       value: {
-        title: `${values.agg}(${
-          columns.find((c) => c.dataIndex === values.sum).title
-        })`,
+        title: columns.find((c) => c.dataIndex === values.sum).title,
         dataIndex: values.sum,
       },
     };
@@ -190,16 +187,25 @@ const Data = () => {
 
   const config = {
     data,
-    xField: aggColumns?.group?.dataIndex,
-    yField: aggColumns?.value?.dataIndex,
-    slider: {
-      x: {},
-      y: {},
-    },
+    xField: aggColumns?.group.dataIndex,
+    yField: aggColumns?.value.dataIndex,
+    colorField: aggColumns?.value.dataIndex,
+    size: 5,
     tooltip: [
-      { channel: "x", name: aggColumns?.group?.title },
-      { channel: "y", name: aggColumns?.value?.title },
+      { channel: "x", name: aggColumns?.group.title },
+      { channel: "y", name: aggColumns?.value.title },
     ],
+    shapeField: "point",
+    style: {
+      stroke: "#000",
+      strokeOpacity: 0.2,
+    },
+    scale: {
+      color: {
+        palette: "rdBu",
+        offset: (t) => 1 - t,
+      },
+    },
   };
 
   return (
@@ -208,7 +214,7 @@ const Data = () => {
       <div className={styles.aggregate}>
         <Form name="aggregate" onFinish={onFinish} layout="inline">
           <Form.Item
-            label="Group by"
+            label="X Axis"
             name="group"
             rules={[{ required: true, message: "'Group by' is required" }]}>
             <Select placeholder="Select a column" {...SelectProps}>
@@ -221,38 +227,17 @@ const Data = () => {
           </Form.Item>
 
           <Form.Item
-            label="Summarize"
+            label="Y Axis"
             name="sum"
             rules={[{ required: true, message: "'Summarize' is required" }]}>
-            <Select
-              placeholder="Select a column"
-              {...SelectProps}
-              onChange={(value) => {
-                if (notInt.includes(value)) return setIsInt(false);
-                return setIsInt(true);
-              }}>
-              {columns.map((c) => (
-                <Select.Option key={c.key} value={c.dataIndex}>
-                  {c.title}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            label="Aggregate"
-            name="agg"
-            rules={[{ required: true, message: "'Aggregate' is required" }]}>
-            <Select placeholder="Select an aggregate function" {...SelectProps}>
-              <Select.Option value="COUNT">COUNT</Select.Option>
-              {isInt && (
-                <>
-                  <Select.Option value="SUM">SUM</Select.Option>
-                  <Select.Option value="AVG">AVERAGE</Select.Option>
-                  <Select.Option value="MIN">MIN</Select.Option>
-                  <Select.Option value="MAX">MAX</Select.Option>
-                </>
-              )}
+            <Select placeholder="Select a column" {...SelectProps}>
+              {columns
+                .filter((c) => !notInt.includes(c.dataIndex))
+                .map((c) => (
+                  <Select.Option key={c.key} value={c.dataIndex}>
+                    {c.title}
+                  </Select.Option>
+                ))}
             </Select>
           </Form.Item>
 
@@ -267,7 +252,7 @@ const Data = () => {
         style={{
           margin: "0 40px",
         }}>
-        <Column {...config} />
+        <Scatter {...config} />
       </div>
     </>
   );

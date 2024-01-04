@@ -2,21 +2,34 @@
 import prisma from "@/util/prisma";
 import Papa from "papaparse";
 
-const notInt = ["Education", "Marital_Status", "Income", "Dt_Customer"];
+const notInt = ["Education", "Marital_Status", "Dt_Customer"];
 
 export default async function handler(req, res) {
   // kalau mau get request
   if (req.method === "GET") {
     // console.log(req.query);
     // if there's aggregate request
-    if (Object.keys(req.query).length === 3) {
+    if (Object.keys(req.query).length > 0) {
       const { group, sum, agg } = req.query;
-      let data = await prisma.marketing_campaign.groupBy({
-        by: [group],
-        [`_${agg.toLowerCase()}`]: {
-          [sum]: true,
-        },
-      });
+
+      let data;
+
+      if (!agg) {
+        data = await prisma.marketing_campaign.findMany({
+          select: {
+            [group]: true,
+            [sum]: true,
+          },
+        });
+
+        return res.json(data);
+      } else
+        data = await prisma.marketing_campaign.groupBy({
+          by: [group],
+          [`_${agg.toLowerCase()}`]: {
+            [sum]: true,
+          },
+        });
 
       data = data.map((c) => ({
         [group]: c[group],

@@ -13,7 +13,7 @@ model marketing_campaign {
   Year_Birth          Int?
   Education           String? @db.VarChar(10)
   Marital_Status      String? @db.VarChar(8)
-  Income              String? @db.VarChar(6)
+  Income              Int?
   Kidhome             Int?
   Teenhome            Int?
   Dt_Customer         String? @db.VarChar(10)

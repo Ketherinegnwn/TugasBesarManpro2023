@@ -4,7 +4,6 @@ import React, { useEffect, useState, useRef } from "react";
 import {
   message,
   Button,
-  Checkbox,
   Form,
   Input,
   Select,
@@ -14,7 +13,7 @@ import {
 import { SearchOutlined } from "@ant-design/icons";
 import styles from "@/styles/Data.module.css";
 
-const notInt = ["Education", "Marital_Status", "Income", "Dt_Customer"];
+const notInt = ["Education", "Marital_Status", "Dt_Customer"];
 
 const fetchData = async () => {
   let { data } = await axios.get(`http://localhost:3000/api/data`);
@@ -33,7 +32,7 @@ const fetchAgg = async ({ group, sum, agg }) => {
 
   data = data.map((c) => ({
     ...c,
-    key: c["group"],
+    key: c[group],
   }));
 
   return data;
@@ -47,15 +46,14 @@ const Data = () => {
 
   const searchInput = useRef(null);
 
-  const getData = async ()=>{
+  const getData = async () => {
     setLoading(true);
     const data = await fetchData();
     // console.log(data);
     setData(data);
     setColumns(null);
     setLoading(false);
-  }
-
+  };
 
   useEffect(() => {
     (async () => {
@@ -275,11 +273,11 @@ const Data = () => {
     const newColumns = [
       {
         title: values.group,
-        ...getColumnSearchProps("group"),
+        ...getColumnSearchProps(values.group),
       },
       {
         title: `${values.agg}(${values.sum})`,
-        ...getColumnSearchProps("count"),
+        ...getColumnSearchProps(values.sum),
       },
     ];
 
@@ -359,6 +357,7 @@ const Data = () => {
         dataSource={data}
         scroll={{ x: aggColumns ? null : 5000, y: "60vh" }}
         loading={loading}
+        style={{ margin: "0 40px" }}
         pagination={{
           position: ["topCenter", "none"],
         }}

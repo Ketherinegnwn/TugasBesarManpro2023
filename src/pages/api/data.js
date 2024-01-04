@@ -19,8 +19,8 @@ export default async function handler(req, res) {
       });
 
       data = data.map((c) => ({
-        group: c[group],
-        count: c[`_${agg.toLowerCase()}`][sum],
+        [group]: c[group],
+        [sum]: c[`_${agg.toLowerCase()}`][sum],
       }));
 
       // console.log(data);

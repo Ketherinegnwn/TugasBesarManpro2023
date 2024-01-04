@@ -1,6 +1,7 @@
 import Navbar from "@/component/Navbar";
+import axios from "axios";
 import React, { useState } from "react";
-import { Button, Form, Select } from "antd";
+import { message, Button, Form, Select } from "antd";
 import styles from "@/styles/Data.module.css";
 import dynamic from "next/dynamic";
 
@@ -11,9 +12,20 @@ const Column = dynamic(
 
 const notInt = ["Education", "Marital_Status", "Dt_Customer"];
 
+const fetchAgg = async ({ group, sum, agg }) => {
+  let { data } = await axios.get(
+    `http://localhost:3000/api/data?group=${group}&sum=${sum}&agg=${agg}`
+  );
+
+  return data;
+};
+
 const Data = () => {
   const [data, setData] = useState([]);
   const [isInt, setIsInt] = useState(true);
+  const [aggColumns, setColumns] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState("");
 
   const getColumnSearchProps = (dataIndex) => ({
     width: 200,
@@ -147,13 +159,48 @@ const Data = () => {
   };
 
   const onFinish = async (values) => {
-    console.log("Success:", values);
+    // console.log("Success:", values);
+    setLoading(true);
+    if (notInt.includes(values.sum) && values.agg !== "COUNT") {
+      setLoading(false);
+      return message.error(
+        `Can't use ${values.agg} aggregate on ${values.sum}!`
+      );
+    }
+
+    const data = await fetchAgg(values);
+    console.log(data);
+
+    const newCol = {
+      group: {
+        title: columns.find((c) => c.dataIndex === values.group).title,
+        dataIndex: values.group,
+      },
+      value: {
+        title: `${values.agg}(${
+          columns.find((c) => c.dataIndex === values.sum).title
+        })`,
+        dataIndex: values.sum,
+      },
+    };
+
+    setColumns(newCol);
+    setData(data);
+    setLoading(false);
   };
 
   const config = {
     data,
-    xField: "group",
-    yField: "value",
+    xField: aggColumns?.group?.dataIndex,
+    yField: aggColumns?.value?.dataIndex,
+    slider: {
+      x: {},
+      y: {},
+    },
+    tooltip: [
+      { channel: "x", name: aggColumns?.group?.title },
+      { channel: "y", name: aggColumns?.value?.title },
+    ],
   };
 
   return (
@@ -211,7 +258,7 @@ const Data = () => {
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={loading}>
               Submit
             </Button>
           </Form.Item>

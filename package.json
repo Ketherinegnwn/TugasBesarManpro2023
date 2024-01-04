@@ -9,9 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ant-design/charts": "^2.0.3",
+    "@ant-design/icons": "^5.2.6",
     "@prisma/client": "^5.7.0",
     "antd": "^5.12.2",
     "axios": "^1.6.2",
+    "lodash": "^4.17.21",
     "next": "13.4.5",
     "papaparse": "^5.4.1",
     "prisma": "^5.7.0",

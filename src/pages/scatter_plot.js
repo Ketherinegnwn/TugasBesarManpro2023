@@ -1,6 +1,7 @@
 import Navbar from "@/component/Navbar";
+import axios from "axios";
 import React, { useState } from "react";
-import { Button, Form, Select } from "antd";
+import { message, Button, Form, Select } from "antd";
 import styles from "@/styles/Data.module.css";
 import dynamic from "next/dynamic";
 
@@ -11,9 +12,18 @@ const Scatter = dynamic(
 
 const notInt = ["Education", "Marital_Status", "Dt_Customer"];
 
+const fetchAgg = async ({ group, sum }) => {
+  let { data } = await axios.get(
+    `http://localhost:3000/api/data?group=${group}&sum=${sum}`
+  );
+
+  return data;
+};
+
 const Data = () => {
   const [data, setData] = useState([]);
-  const [isInt, setIsInt] = useState(true);
+  const [aggColumns, setColumns] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const getColumnSearchProps = (dataIndex) => ({
     width: 200,
@@ -147,13 +157,55 @@ const Data = () => {
   };
 
   const onFinish = async (values) => {
-    console.log("Success:", values);
+    // console.log("Success:", values);
+    setLoading(true);
+    if (notInt.includes(values.sum) && values.agg !== "COUNT") {
+      setLoading(false);
+      return message.error(
+        `Can't use ${values.agg} aggregate on ${values.sum}!`
+      );
+    }
+
+    const data = await fetchAgg(values);
+    console.log(data);
+
+    const newCol = {
+      group: {
+        title: columns.find((c) => c.dataIndex === values.group).title,
+        dataIndex: values.group,
+      },
+      value: {
+        title: columns.find((c) => c.dataIndex === values.sum).title,
+        dataIndex: values.sum,
+      },
+    };
+
+    setColumns(newCol);
+    setData(data);
+    setLoading(false);
   };
 
   const config = {
     data,
-    xField: "group",
-    yField: "value",
+    xField: aggColumns?.group.dataIndex,
+    yField: aggColumns?.value.dataIndex,
+    colorField: aggColumns?.value.dataIndex,
+    size: 5,
+    tooltip: [
+      { channel: "x", name: aggColumns?.group.title },
+      { channel: "y", name: aggColumns?.value.title },
+    ],
+    shapeField: "point",
+    style: {
+      stroke: "#000",
+      strokeOpacity: 0.2,
+    },
+    scale: {
+      color: {
+        palette: "rdBu",
+        offset: (t) => 1 - t,
+      },
+    },
   };
 
   return (
@@ -178,13 +230,7 @@ const Data = () => {
             label="Y Axis"
             name="sum"
             rules={[{ required: true, message: "'Summarize' is required" }]}>
-            <Select
-              placeholder="Select a column"
-              {...SelectProps}
-              onChange={(value) => {
-                if (notInt.includes(value)) return setIsInt(false);
-                return setIsInt(true);
-              }}>
+            <Select placeholder="Select a column" {...SelectProps}>
               {columns
                 .filter((c) => !notInt.includes(c.dataIndex))
                 .map((c) => (
@@ -196,7 +242,7 @@ const Data = () => {
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={loading}>
               Submit
             </Button>
           </Form.Item>

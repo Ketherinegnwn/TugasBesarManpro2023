@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     // if there's aggregate request
     if (Object.keys(req.query).length > 0) {
       const { group, sum, agg } = req.query;
-      console.log("test", agg);
+
       let data;
 
       if (!agg) {
@@ -21,7 +21,6 @@ export default async function handler(req, res) {
             [sum]: true,
           },
         });
-
 
         return res.json(data);
       } else

@@ -25,7 +25,6 @@ const Data = () => {
   const [isInt, setIsInt] = useState(true);
   const [aggColumns, setColumns] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [title, setTitle] = useState("");
 
   const getColumnSearchProps = (dataIndex) => ({
     width: 200,
